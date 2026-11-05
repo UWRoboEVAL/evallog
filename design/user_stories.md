@@ -82,6 +82,9 @@ Priya is comfortable with Python notebooks and has a solid statistics background
 1. As a Researcher, I want to set alpha, delta and the list of comparisons once when I create the study, so that the error guarantee is fixed before any data arrives.
 2. As a Researcher, I want to see, for each comparison, the current decision (A better / B better / no meaningful difference / inconclusive), so that I know which comparisons can stop.
 3. As an Integrator, I want to import a CSV of policy results that my own script produced, so that I get decisions without re-running anything.
+
+## Suhang
+
 4. Academic researcher: Priya. Priya is a PhD student comparing her new grasping policy with the lab's old one on a single robot arm, one trial at a time. Each trial needs a manual scene reset. She wants one short command to log each result and a clear "keep going" or "stop" answer. Priya writes Python every day but knows only basic statistics.
 5. Simulation user: Arjun. Arjun evaluates each trained policy with thousands of simulated rollouts on rented GPUs. He wants to stop as soon as the answer is clear, to save compute. He needs a small Python API that takes one result at a time and returns the current decision. Arjun is an expert Python developer.
 6. Embodied AI company: Kenji. Kenji is a machine learning engineer at an embodied AI startup. Every week he must decide whether a new checkpoint should replace the model on customer robots. He wants that decision backed by statistics, not by watching a few videos. Kenji is an expert Python developer who knows A/B testing.

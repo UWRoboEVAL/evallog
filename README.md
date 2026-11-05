@@ -1,4 +1,4 @@
-# roboeval
+# EVALLOG
 
 ## Abstract
 
@@ -7,7 +7,7 @@ Course project for CSE 583 (Software Engineering for Data Science), University o
 
 ## What roboeval solves
 
-roboeval tells you, after every trial, whether you can stop evaluating, for each policy and each task, while keeping the chance of a false conclusion below a level you choose (e.g. 5%).
+evallog tells you, after every trial, whether you can stop evaluating, for each policy and each task, while keeping the chance of a false conclusion below a level you choose (e.g. 5%).
 
 - Stop early when the result is clear, and spend the saved trials on tasks that are still undecided.
 - Compare several new policies against one baseline across many tasks.
@@ -15,7 +15,7 @@ roboeval tells you, after every trial, whether you can stop evaluating, for each
 
 ## Our approach
 
-<flowchart>
+-flowchart
 
 
 ## Team

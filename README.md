@@ -1,4 +1,4 @@
-# roboeval
+# EVALLOG
 
 ## Abstract
 
@@ -15,7 +15,7 @@ roboeval tells you, after every trial, whether you can stop evaluating, for each
 
 ## Our approach
 
-<flowchart>
+-flowchart
 
 
 ## Team

@@ -14,6 +14,14 @@ What is their skill level.
 
 3. David evaluates robot programs using public RoboArena datasets. He wants to automatically feed bulk trial records into a script to find exactly when a policy proved superior. He needs a tool that handles data imports and generates clean, publish-ready tables with error bars. David is highly proficient in Python scripting.
 
+4. Dr. Elena directs a robotics lab and wants to standardize how students report policy improvements. She needs the tool to generate an easy-to-read final report showing confidence intervals so she can instantly verify claims and prevent cherry-picked results. Dr. Elena understands the statistics conceptually but does not write Python code.
+
+5. Marcus maintains an automated evaluation pipeline for a shared robotics codebase. He wants a tool to automatically block GitHub pull requests if a new model isn't statistically better than the baseline. He needs it to run headless in CI/CD, ingest logs, and return strict system exit codes. Marcus is an expert in Python and MLOps but treats the statistics as a black box.
+
+6. Jin competes in a public robotics challenge with a limited daily submission quota. He wants to compare local simulation runs to see if his latest policy tweak is genuinely better before submitting it to the official server. He needs a strict statistical referee that imports CSVs to prevent confirmation bias. Jin is advanced in Python and machine learning.
+
+7. Chloe tests a navigation policy using two different physical cameras on a real-world obstacle course. She wants to stop manually walking the robot through the course as soon as one camera proves definitively better. She needs a responsive CLI that outputs a highly visible "STOP" signal while she manages the physical hardware. Chloe is an expert in ROS and Python but relies entirely on the tool for the math.
+
 ## Hao
 
 ## User Story 1: Real-robot researcher

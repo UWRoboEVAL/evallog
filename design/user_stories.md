@@ -101,10 +101,241 @@ Priya is comfortable with Python notebooks and has a solid statistics background
 
 ## Kevin
 
-1. As a Researcher, I want to set alpha, delta and the list of comparisons once when I create the study, so that the error guarantee is fixed before any data arrives.
-2. As a Researcher, I want to see, for each comparison, the current decision (A better / B better / no meaningful difference / inconclusive), so that I know which comparisons can stop.
-3. As an Integrator, I want to import a CSV of policy results that my own script produced, so that I get decisions without re-running anything.
-4. As a Reader, I want a plot of the interval narrowing over trials with the stopping point marked, so that I can see why the study stopped when it did.
+### User Story 1: Researcher (Alex)
+
+**Who is the user**
+
+Alex is a third-year PhD student in a manipulation lab, preparing a CoRL submission. Alex compares a new policy against two baselines on three tasks, using the lab's shared Franka arm. The arm is shared by the whole lab, so Alex can book only two afternoons a week.
+
+**What does Alex want to do with the tool**
+
+Alex wants to log each trial during an afternoon session and, after every trial, know which of the six comparisons already have a conclusion. That way the remaining robot time goes only to comparisons that are still open. When the evaluation ends, Alex wants results that can go straight into the paper. (Use case 1: live early screening.)
+
+**What needs and desires does Alex have for the tool**
+
+Alex needs to fix the rules before the first trial, see after every trial which comparisons can stop, and know roughly how many trials the rest will take. Looking at the results that often must not weaken the guarantee, and the guarantee must cover all six comparisons together. Alex also needs everything required to rerun the analysis kept with the results, so reviewers can check it. Alex would like a summary that goes into the paper without retyping.
+
+**What is Alex's skill level**
+
+Alex writes Python every day to train models and is comfortable with the command line and YAML config files. Alex took a graduate statistics course and understands confidence intervals and p-values, but has not studied sequential tests or multiple-comparison corrections, and has no time to learn them before the deadline.
+
+**Needs**
+
+- **#1** As a Researcher, I want to fix alpha, delta and the comparisons when I create the study, so that the guarantee is set before any data arrives. [Need]
+   - Acceptance: alpha defaults to 0.05.
+   - Acceptance: alpha must be greater than 0 and at most 0.20; a larger value is rejected with a message that screening use rarely goes above 0.20.
+   - Acceptance: after the first trial is logged, a change to alpha is refused; to use another alpha, create a new study.
+   - Acceptance: the metric (success or progress) is chosen here too.
+   - Acceptance: the report flags any alpha other than 0.05.
+- **#2** As a Researcher, I want each comparison's current decision (A better / B better / no meaningful difference / inconclusive), so that I know which ones can stop. [Need]
+- **#3** As a Researcher, I want to know how many more trials each comparison needs, so that I can plan the session. [Need]
+   - Acceptance: the estimate uses the trials logged so far, not an assumed success rate. Pre-study power analysis stays Extensible.
+- **#4** As a Researcher, I want one guarantee to cover all comparisons together, so that many comparisons do not make a false conclusion likely. [Need]
+- **#5** As a Researcher, I want to check results at any time without weakening the guarantee, so that I can stop as soon as the evidence is enough. [Need; non-functional]
+- **#6** As a Researcher, I want everything needed to rerun the analysis kept with the results, so that others can check the conclusion. [Need]
+- **#7** As a Researcher, I want a paper-ready summary of every comparison, so that no number is copied wrong. [Desire]
+
+### User Story 2: Operator (Sam)
+
+**Who is the user**
+
+Sam is an undergraduate research assistant who works in Alex's lab, two three-hour shifts a week. Sam runs trials for Alex: places the objects, starts the policy, watches the robot finish, judges success or failure, and resets the scene. Sam stands beside the arm for the whole shift, often holding an object, with a laptop on a cart nearby.
+
+**What does Sam want to do with the tool**
+
+Sam wants to record each result within a few seconds of judging the trial, then reset the scene and run the next one. When Sam records something wrong, Sam wants to fix it without calling Alex. By the end of the shift, Sam wants to be sure every trial was recorded. Deciding which comparisons can stop is Alex's job, not Sam's.
+
+**What needs and desires does Sam have for the tool**
+
+Sam needs to record each result in a few seconds with very little typing, have a mistyped name caught on the spot, fix a wrong entry without asking Alex, and never lose a trial already recorded. Sam would like to note how far the robot got and why it failed in the same step as the result.
+
+**What is Sam's skill level**
+
+Sam is a second-year mechanical engineering student. Sam can follow a written checklist and type a short command, but does not write Python and knows no statistics. Sam learned the tool in a ten-minute walkthrough from Alex.
+
+**Needs**
+
+- **#8** As an Operator, I want to record a result in seconds with little typing, so that logging does not slow the session. [Need]
+   - Note: CLI, GUI or both is left to the Component Spec. The professor's "GUI to take data in" is one way to meet this.
+- **#9** As an Operator, I want to fix a wrong entry myself, so that I do not have to ask Alex. [Need]
+   - Note: the original entry stays visible after the fix, because Alex needs an auditable record (story 6).
+- **#10** As an Operator, I want to note progress and the failure reason with the result, so that I need no separate notebook. [Desire]
+   - Note: failure reasons are picked from a list Alex sets up.
+- **#11** As an Operator, I want mistyped policy or task names caught, so that a typo does not create a fake policy. [Need]
+- **#12** As an Operator, I want recorded trials to survive a crash, so that I never rerun trials. [Need]
+
+### User Story 3: Integrator (Jordan)
+
+**Who is the user**
+
+Jordan is a research engineer in Alex's lab who maintains the lab's LIBERO evaluation script. Every night the script runs a new checkpoint for thousands of simulated rollouts on the lab's GPU machines and writes the results to a CSV file. Before the team builds on a new checkpoint, Jordan compares it with the previous one.
+
+**What does Jordan want to do with the tool**
+
+Jordan wants conclusions from the results the script already produces, without rewriting the script or rerunning anything. For each new checkpoint, Jordan wants to know which tasks improved, which got worse, and which have too few rollouts to tell.
+
+**What needs and desires does Jordan have for the tool**
+
+Jordan needs to feed in the existing results file as it is, and to see per task whether a new checkpoint is worse than the old one. Jordan would like to send each rollout to evallog from inside the script while a run is still going.
+
+**What is Jordan's skill level**
+
+Jordan is an expert Python programmer who builds evaluation pipelines and runs jobs on GPU machines. Jordan knows success rates and averages well, but rarely uses confidence intervals and has never needed a multiple-comparison correction.
+
+**Needs**
+
+- **#13** As an Integrator, I want to use my script's results file as it is, so that I need not rewrite or rerun anything. [Need]
+   - Note: covers the professor's "CSV file input".
+- **#14** As an Integrator, I want to send each rollout from my code as it finishes, so that conclusions stay current during long runs. [Desire]
+   - Note: covers the professor's "API input". Python API or HTTP is left to the Component Spec.
+- **#15** As an Integrator, I want to see which tasks a new checkpoint made worse, or cannot yet tell, so that regressions do not slip through. [Need]
+
+### User Story 4: Re-analyst (Riley)
+
+**Who is the user**
+
+Riley is a postdoc at another university writing a survey of vision-language-action policies for manipulation. Riley has no robot. Riley's material is the result tables in about ten papers and the public RoboArena records.
+
+**What does Riley want to do with the tool**
+
+Riley wants to check which published claims hold up: whether "ours 19/25 vs. baseline 14/20" is a real difference, whether reported LIBERO numbers fall inside intervals from fresh rollouts, and whether paper claims agree in direction with RoboArena head-to-head results. (Use case 2: retrospective re-analysis.)
+
+**What needs and desires does Riley have for the tool**
+
+Riley needs intervals and a test for counts copied from papers, a way to put those counts next to trial-level results, RoboArena records that can be analyzed without hand conversion, comparisons on RoboArena's progress score, and one policy under different names treated as one. Riley would like to enter a whole survey table at once instead of one comparison at a time.
+
+**What is Riley's skill level**
+
+Riley reads papers critically and knows standard statistics well, including confidence intervals and why small samples mislead. Riley works in Python notebooks with pandas, but does not want to learn a new data format.
+
+**Needs**
+
+- **#16** As a Re-analyst, I want intervals and a test for paper counts such as 19/25 vs. 14/20, so that I can judge a claim without raw trials. [Need]
+- **#17** As a Re-analyst, I want paper numbers next to trial-level results for the same policy, so that I can see whether they agree. [Need]
+- **#18** As a Re-analyst, I want to analyze RoboArena records directly, so that I need no hand conversion. [Need]
+- **#19** As a Re-analyst, I want one policy under different names treated as one, so that joins do not miss matches. [Need]
+- **#20** As a Re-analyst, I want to enter a whole results table at once, so that a survey is not dozens of entries. [Desire]
+- **#21** As a Re-analyst, I want to compare on RoboArena's progress score, so that comparisons can be decided when full success is rare. [Need]
+
+### User Story 5: Reader (Morgan)
+
+**Who is the user**
+
+Morgan is the professor who leads Alex's lab and advises eight students. Morgan decides which projects get robot time and when a result is ready to submit. Morgan sees evallog's output in weekly group meetings and in drafts that students send.
+
+**What does Morgan want to do with the tool**
+
+Morgan wants to read a student's report and, within a minute, decide whether the result is solid enough to submit, needs more trials, or should be dropped. Morgan never logs data or runs the tool.
+
+**What needs and desires does Morgan have for the tool**
+
+Morgan needs to see every comparison's conclusion, trial count and certainty in one view, and to see the rules the study used, so that a result tuned after the fact would stand out. Morgan would like to see why each policy failed, to steer the next round of work.
+
+**What is Morgan's skill level**
+
+Morgan is an expert in robot learning and understands confidence intervals and p-values. Morgan does not install software for students' projects, and reads an HTML report on a laptop or a projected slide.
+
+**Needs**
+
+- **#22** As a Reader, I want every comparison's conclusion, trial count and certainty in one view, so that I can judge the result in under a minute. [Need]
+- **#23** As a Reader, I want failure counts by reason for each policy, so that I can steer the next round. [Desire]
+- **#24** As a Reader, I want the report to show the study's rules and any change to them, so that I can trust nothing was tuned afterward. [Need]
+
+### User Story 6: Beginner (Casey)
+
+**Who is the user**
+
+Casey is a software developer who builds robots at home in the evenings. Casey bought a low-cost SO-101 arm, followed the LeRobot tutorial, and trained two checkpoints of the same policy on a pick-and-place task. No one helps: Casey is the researcher, the operator and the reader at once.
+
+**What does Casey want to do with the tool**
+
+Casey wants to find out whether the newer checkpoint is really better than the older one. Casey does not know how many trials that takes, and wants the tool to say when the evidence is enough.
+
+**What needs and desires does Casey have for the tool**
+
+Casey needs to start a comparison without choosing any statistical settings, to be told how to set up trials so the comparison is valid, and to get the conclusion in plain words with a one-line reason. Casey would like error messages that say what to fix, so that a setup mistake does not end the evening.
+
+**What is Casey's skill level**
+
+Casey writes Python at work and can follow a tutorial's commands, but knows no statistics and has never heard of a confidence interval. Casey reads documentation only when stuck.
+
+**Needs**
+
+- **#25** As a Beginner, I want to start a comparison without choosing any statistical settings, so that I can begin right away. [Need]
+- **#26** As a Beginner, I want the conclusion in plain words with a one-line reason, so that I understand it without statistics. [Need]
+- **#27** As a Beginner, I want error messages that say what to fix, so that I do not get stuck. [Desire]
+- **#28** As a Beginner, I want to be told how to set up valid trials, such as the same starting positions for both checkpoints, so that no trial is wasted. [Need]
+
+### User Story 7: Benchmark maintainer (Quinn)
+
+**Who is the user**
+
+Quinn is a research engineer who maintains a public leaderboard for a simulated manipulation benchmark. Groups submit policies; each one runs on 10 tasks with 50 episodes per task, and the leaderboard ranks them.
+
+**What does Quinn want to do with the tool**
+
+Quinn wants the leaderboard to show which policies are actually different, instead of ranking them by gaps smaller than the noise. Each leaderboard release is one fixed study, so a new submission waits for the next release.
+
+**What needs and desires does Quinn have for the tool**
+
+Quinn needs to compare many policies at once and know which differences are real, and to show results per task as well as overall.
+
+**What is Quinn's skill level**
+
+Quinn is an expert Python programmer who runs automated pipelines. Quinn knows statistics well, including the multiple-comparison problem, and wants the method documented well enough to cite on the leaderboard page.
+
+**Needs**
+
+- **#29** As a Benchmark maintainer, I want to know which of many policies truly differ, so that the leaderboard does not rank noise. [Need]
+- **#30** As a Benchmark maintainer, I want results per task and overall, so that users see where each policy is strong. [Need]
+
+### User Story 8: Instructor (Taylor)
+
+**Who is the user**
+
+Taylor teaches a graduate course on robot learning. Every year, students present results such as "15/20 vs. 12/20" as clear wins, and Taylor wants a lecture that shows why such a gap can be noise.
+
+**What does Taylor want to do with the tool**
+
+Taylor wants to replay a recorded study in class, trial by trial, so that students watch the conclusion form and see when stopping early is safe. Then Taylor wants students to repeat it in a homework notebook.
+
+**What needs and desires does Taylor have for the tool**
+
+Taylor needs to show a recorded study unfolding trial by trial, and needs small example data that runs on a student laptop without large downloads. Taylor would like to set up a simulated study with known true success rates, so that students can check the tool against the right answer.
+
+**What is Taylor's skill level**
+
+Taylor is an expert in robot learning and statistics and builds lecture demos in Jupyter. Taylor's students know Python basics and introductory statistics.
+
+**Needs**
+
+- **#31** As an Instructor, I want to replay a study trial by trial as its conclusion forms, so that students see why early stopping can be trusted. [Need]
+   - Note: the replay animation is Phase 2 in the Project Description, with no timeline slot.
+- **#32** As an Instructor, I want small example data that runs on a laptop, so that the whole class can follow. [Need]
+- **#33** As an Instructor, I want a simulated study with true rates I choose, so that students can check the tool against the answer. [Desire; Extensible, after Dec 16]
+
+### User Story 9: Methods researcher (Avery)
+
+**Who is the user**
+
+Avery is a PhD student who studies how robot policies should be evaluated. Avery's thesis compares stopping rules and needs real trial-level logs to test them on. Avery has no robot and relies on public data.
+
+**What does Avery want to do with the tool**
+
+Avery wants to replay existing trial logs, in their real order and in many random orders, and measure how early a decision could have been reached and how often it matches the full-data result. Avery then wants to compare those numbers with Avery's own method on the same data.
+
+**What needs and desires does Avery have for the tool**
+
+Avery needs to replay existing logs and get the spread of stopping points and the agreement with the full data, and needs a clean trial-level dataset in one documented format. Avery also relies on reports that state the method and settings behind each conclusion (story 24).
+
+**What is Avery's skill level**
+
+Avery is an expert in statistics, fluent in Python, and reads the source code of the tools Avery uses.
+
+**Needs**
+
+- **#34** As a Methods researcher, I want to replay a log in its real order and many random orders, so that I can measure stopping time and agreement with the full data. [Need]
+- **#35** As a Methods researcher, I want one clean, documented trial-level dataset (LIBERO and RoboArena), so that I can study evaluation without collecting data. [Need]
 
 ## Suhang
 

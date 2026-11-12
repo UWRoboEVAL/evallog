@@ -1,4 +1,4 @@
-#Use Case
+# Use Case
 ### Use Case: [Brief Title / Persona Goal]
 
 ### Who is the User?

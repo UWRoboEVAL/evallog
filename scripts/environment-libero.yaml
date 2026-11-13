@@ -1,0 +1,19 @@
+name: libero
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - "lerobot[libero] @ git+https://github.com/huggingface/lerobot.git@e6ffde60312365c5452c46189a26872483943154"
+      - torch==2.15.0
+      - torchvision==0.29.2
+      - torchcodec==0.17.0
+      - transformers==5.22.2
+      - huggingface_hub==2.4.0
+      - hf_libero==0.1.4
+      - robosuite==1.4.0
+      - mujoco==3.8.1
+      - bddl==1.0.1
+      - gymnasium==1.4.0
+      - numpy==2.2.6

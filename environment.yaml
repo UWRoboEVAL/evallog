@@ -1,0 +1,13 @@
+name: evallog
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - pyyaml
+  - scipy
+  - matplotlib
+  - pytest
+  - ruff
+  - pip

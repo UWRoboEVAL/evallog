@@ -18,6 +18,16 @@ evallog tells you, after every trial, whether you can stop evaluating, for each 
 -flowchart
 
 
+## Install
+
+```bash
+conda env create -f environment.yaml
+conda activate evallog
+pip install --no-deps -e .
+```
+
+Run the tests with `pytest`.
+
 ## Team
 
 | Name | GitHub |

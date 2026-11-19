@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77.0", "wheel", "setuptools_scm>=8.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evallog"
+dynamic = ["version"]
+authors = [
+    {name = "Hao Lee"},
+    {name = "Abhishek Joshi"},
+    {name = "Suhang Xu"},
+    {name = "Chi-Lung (Kevin) Ma"},
+]
+description = "Tells you after each trial whether a robot policy comparison can stop."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyyaml",
+    "scipy",
+    "matplotlib",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/UWRoboEVAL/evallog"
+Issues = "https://github.com/UWRoboEVAL/evallog/issues"
+
+[tool.setuptools_scm]

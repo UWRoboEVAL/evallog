@@ -18,7 +18,7 @@ Use Cases 1 to 6 are the first version. The section "Future Version" lists the f
 *   **Operational Workflows:**
     *   *Precondition:* The tool is installed.
     *   *Standard Operations:* The user **runs one command or one API call and accepts the defaults**. The tool **creates a study folder with a settings file and an empty trial table**.
-    *   *Edge/Exception Operations:* The tool **rejects an invalid setting with a message that says what to fix**. After the first trial is logged, the tool **refuses a change to the settings**; the user **creates a new study** instead.
+    *   *Edge/Exception Operations:* The tool **rejects an invalid setting with a message that says what to fix**. After the study is created, the tool **refuses a change to the settings**; the user **creates a new study** instead.
 
 ### What Needs and Desires Do They Have for the Tool?
 *   **Functional Needs:**
@@ -37,10 +37,8 @@ Use Cases 1 to 6 are the first version. The section "Future Version" lists the f
 
 ### Assumptions and Open Questions
 *   <mark>Assumption:</mark> A study has exactly one baseline. Every comparison is one policy against that baseline, on one task.
-*   <mark>Assumption:</mark> The policies and tasks are known before the first trial. To add a policy later, the user creates a new study.
+*   <mark>Assumption:</mark> The policies and tasks are known when the study is created. To add a policy later, the user creates a new study.
 *   <mark>Uncertainty:</mark> Do the same default values suit a real-robot study with 20 to 40 trials and a simulation study with thousands of rollouts?
-*   <mark>Uncertainty:</mark> "Strict control" and "a looser setting" are not defined in words a beginner understands.
-*   <mark>Terms to clarify:</mark> baseline, metric (success or progress), alpha, delta, correction method, comparison.
 
 ## Use Case 2: Log a Trial
 
@@ -219,6 +217,7 @@ These functions are planned for after the first version. The first version keeps
 *   A button on a dashboard that logs a trial (Use Case 2).
 *   Comparison of many policies with each other, not only with the baseline (Use Cases 1 and 3).
 *   An estimate, before the study starts, of how many trials are needed (Use Case 1).
+*   Reuse of the baseline trials of an earlier study in a new study (Use Case 1).
 *   Replay of the same records under different settings (Use Case 5).
 *   A replay animation, and a simulated study with known true success rates (Use Case 5).
 
@@ -226,6 +225,19 @@ These functions are planned for after the first version. The first version keeps
 
 *   **Installation.** The tool installs from a downloaded package with a standard `pip install`, on a computer with no internet access. It needs few dependencies and supports Linux and macOS.
 *   **Getting started.** The tool comes with a quick-start guide, examples that a user can copy, and small example data that runs on a laptop.
+
+## Glossary
+
+The terms that are highlighted in the use cases are defined here.
+
+| Term | Meaning |
+| --- | --- |
+| Baseline | The policy that every other policy in the study is compared against. |
+| Metric | The outcome that the study compares. It is either success (0 or 1) or progress (a score from 0 to 1). |
+| Comparison | One policy against the baseline on one task. The tool gives one decision for each comparison. |
+| Alpha | The error level that the user accepts. The default is 0.05. Its exact meaning depends on the correction method. |
+| Delta | The smallest difference that matters to the user. The default is 0.10. When the difference is smaller than delta, the tool reports "no meaningful difference". |
+| Correction method | The rule that keeps the error level valid when a study has many comparisons. Strict control (`fwer`) limits the chance of one or more false conclusions in the whole study. The looser setting (`fdr`) limits the share of false conclusions among the conclusions that the tool reports. |
 
 ## Stories and Use Cases
 

@@ -77,24 +77,24 @@ Use Cases 1 to 6 are the first version. The section "Future Version" lists the f
 
 ### Who is the User?
 *   **Persona/Role:** Study owner
-*   **Context:** The person or pipeline that must know whether a comparison is settled. A researcher decides during a session whether to run more trials. A script or CI pipeline acts on the result. An engineer decides whether a new checkpoint ships.
+*   **Context:** The person or pipeline that must know whether a <mark>comparison</mark> is <mark>settled</mark>. A researcher decides during a session whether to run more trials. A script or CI pipeline acts on the result. An engineer decides whether a new checkpoint ships.
 
 ### What Do They Want to Do with the Tool?
 *   **Primary Tasks:**
-    *   See the current decision for each comparison: the new policy is better, the baseline is better, there is no meaningful difference, or keep going.
-    *   Stop collecting trials for comparisons that are settled, and spend the remaining time on the open ones.
-    *   Use the decision in an automated pipeline, for example to block a pull request.
+    *   **See the current <mark>decision</mark> for each comparison**: the new policy is better, the <mark>baseline</mark> is better, there is no meaningful difference, or keep going.
+    *   **Stop collecting trials for comparisons that are settled**, and spend the remaining time on the <mark>open</mark> ones.
+    *   **Use the decision in an automated pipeline**, for example to block a pull request.
 *   **Operational Workflows:**
-    *   *Precondition:* The study exists and holds trials (Use Case 2 or 4).
-    *   *Standard Operations:* After any trial, the user asks for the status. The tool shows one line per comparison with the decision, the number of trials and the interval. A script gets the same result from the Python API or from the exit code.
-    *   *Edge/Exception Operations:* The user may check after every trial; this does not weaken the guarantee. When a comparison reaches the maximum number of trials without a decision, the tool reports it as inconclusive. When a comparison has no paired trials yet, the tool reports that it has no data.
+    *   *Precondition:* The study exists (Use Case 1). It may hold no trials yet; trials come from Use Case 2 or 4.
+    *   *Standard Operations:* After any trial, the user **asks for the status**. The tool **shows one line per comparison with the decision, the number of trials and the <mark>interval</mark>**. A script **gets the same result from the Python API or from the exit code**.
+    *   *Edge/Exception Operations:* The user **may check after every trial**; this does not weaken the <mark>guarantee</mark>. When a comparison reaches the <mark>maximum number of trials</mark> without a decision, the tool **reports it as <mark>inconclusive</mark>**. When a comparison has no <mark>paired trials</mark> yet, the tool **reports that it has no data**.
 
 ### What Needs and Desires Do They Have for the Tool?
 *   **Functional Needs:**
-    *   A stated error rate that stays valid however often the results are checked, and that covers all comparisons together.
-    *   Support for both pass-or-fail outcomes and scores between 0 and 1.
-    *   A machine-readable result for scripts and CI.
-*   **Desires / Experience Preferences:** A highly visible "STOP" signal that can be read while handling hardware. The conclusion in plain words with a one-line reason.
+    *   **<ins>A stated error rate that stays valid however often the results are checked</ins>**, and that **<ins>covers all comparisons together</ins>**.
+    *   **<ins>Support for both pass-or-fail outcomes and scores between 0 and 1</ins>**.
+    *   **<ins>A machine-readable result for scripts and CI</ins>**.
+*   **Desires / Experience Preferences:** **A highly visible "STOP" signal that can be read while handling hardware.** **The conclusion in plain words with a one-line reason.**
 
 ### What is Their Skill Level?
 *   **Technical Proficiency:** Medium to Expert. Most write Python every day.
@@ -102,8 +102,21 @@ Use Cases 1 to 6 are the first version. The section "Future Version" lists the f
 
 ### Inputs and Outputs
 *   **Inputs:** The trial table and the study settings.
-*   **Outputs:** For each comparison: the decision, the number of trials used, and the interval for the difference between the two policies.
+*   **Outputs:** For each comparison: the decision, a one-line reason, the number of trials used, and the interval for the difference between the two policies. For the whole study: an exit code.
 *   **Transformation:** The tool pairs the trials of the two policies, computes an interval for their difference that is valid at any time and adjusted for the number of comparisons, and applies the decision rules.
+
+### Assumptions and Open Questions
+*   <mark>Assumption:</mark> A pair is one baseline trial and one policy trial with the same task and the same pair identifier. One baseline trial can be in the pairs of more than one comparison.
+*   <mark>Assumption:</mark> "The number of trials" is the number of complete pairs of the comparison. The maximum number of trials is also counted in pairs.
+*   <mark>Assumption:</mark> The tool uses the pairs in the order in which they became complete in the trial table. A trial with no partner is not used.
+*   <mark>Assumption:</mark> A decision other than "keep going" and "no data" is final. Later trials do not change it, and they are not counted.
+*   <mark>Assumption:</mark> The difference is the policy outcome minus the baseline outcome. An interval above 0 means that the new policy is better.
+*   <mark>Assumption:</mark> The status command only reads the study. It does not change or add a file.
+*   <mark>Assumption:</mark> The tool checks the rules in this order and reports the first that holds: no meaningful difference (the interval is entirely within −<mark>delta</mark> to +delta), the new policy is better (entirely above 0), the baseline is better (entirely below 0), inconclusive, keep going.
+*   <mark>Assumption:</mark> To compare policies over all tasks together, the user creates a study with one task and logs every trial under it.
+*   <mark>Assumption:</mark> When a policy has more than one trial with the same task and pair identifier, the tool uses the first one and warns about the others. Using a later trial would let an operator repeat a failed trial until it succeeds. A real correction is a Future Version function (Correct a Trial Entry).
+*   <mark>Assumption:</mark> The exit code gives the state of the whole study; the machine-readable result gives each comparison. 0: every comparison is settled and none says the baseline is better. 3: at least one comparison says the baseline is better. 4: no comparison says the baseline is better, but at least one is open. 1 and 2 stay for program and usage errors. "No meaningful difference" and "inconclusive" do not fail the check.
+*   <mark>Uncertainty:</mark> With the `fdr` <mark>correction method</mark>, what interval does the tool show, and can a decision change when another comparison changes?
 
 ## Use Case 4: Import Existing Records
 
@@ -216,6 +229,7 @@ These functions are planned for after the first version. The first version keeps
 *   Record of every deletion and restart, shown in the report (Use Cases 2 and 6).
 *   A button on a dashboard that logs a trial (Use Case 2).
 *   Comparison of many policies with each other, not only with the baseline (Use Cases 1 and 3).
+*   A comparison over all tasks together, in the same study as the comparisons for each task (Use Cases 1 and 3).
 *   An estimate, before the study starts, of how many trials are needed (Use Case 1).
 *   Reuse of the baseline trials of an earlier study in a new study (Use Case 1).
 *   Replay of the same records under different settings (Use Case 5).
@@ -236,8 +250,15 @@ The terms that are highlighted in the use cases are defined here.
 | Metric | The outcome that the study compares. It is either success (0 or 1) or progress (a score from 0 to 1). |
 | Comparison | One policy against the baseline on one task. The tool gives one decision for each comparison. |
 | Alpha | The error level that the user accepts. The default is 0.05. Its exact meaning depends on the correction method. |
-| Delta | The smallest difference that matters to the user. The default is 0.10. When the difference is smaller than delta, the tool reports "no meaningful difference". |
+| Delta | The smallest difference that matters to the user. The default is 0.10. When the whole interval lies within −delta to +delta, the tool reports "no meaningful difference". |
 | Correction method | The rule that keeps the error level valid when a study has many comparisons. Strict control (`fwer`) limits the chance of one or more false conclusions in the whole study. The looser setting (`fdr`) limits the share of false conclusions among the conclusions that the tool reports. |
+| Decision | The current result of one comparison. It is one of: the new policy is better, the baseline is better, no meaningful difference, inconclusive, keep going, no data. |
+| Settled / Open | A comparison is settled when its decision is final (better, no meaningful difference, or inconclusive). It is open when its decision is "keep going" or "no data". |
+| Interval | The range that contains the true difference between the policy and the baseline (policy minus baseline), at the error level of the study. It stays valid however often the user checks it. |
+| Guarantee | The promise that false conclusions stay within alpha, in the sense that the correction method sets, for all comparisons of the study together, however often the user checks the results. |
+| Paired trials (pair) | One baseline trial and one policy trial on the same task with the same pair identifier. A decision uses only complete pairs. |
+| Maximum number of trials | The largest number of pairs that one comparison can use. It is the `max_trials` setting. The default is 100. |
+| Inconclusive | The decision of a comparison that used the maximum number of trials and reached no other decision. |
 
 ## Stories and Use Cases
 
